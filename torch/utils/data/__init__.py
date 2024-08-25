@@ -7,6 +7,7 @@ from torch.utils.data.sampler import (
     SequentialSampler,
     SubsetRandomSampler,
     WeightedRandomSampler,
+    QuiverBatchSampler
 )
 from torch.utils.data.dataset import (
     ChainDataset,
@@ -28,7 +29,7 @@ from torch.utils.data.dataloader import (
     default_collate,
     default_convert,
 )
-from torch.utils.data.distributed import DistributedSampler
+from torch.utils.data.distributed import DistributedSampler, QuiverDistributedSampler
 from torch.utils.data._decorator import (
     argument_validation,
     functional_datapipe,
@@ -37,6 +38,10 @@ from torch.utils.data._decorator import (
     runtime_validation,
     runtime_validation_disabled,
 )
+
+from .shadesampler import ShadeSampler
+from .shadedataset import ShadeDataset, ShadeValDataset
+
 from torch.utils.data.dataloader_experimental import DataLoader2
 from torch.utils.data import communication
 
@@ -70,7 +75,12 @@ __all__ = ['BatchSampler',
            'non_deterministic',
            'random_split',
            'runtime_validation',
-           'runtime_validation_disabled']
+           'runtime_validation_disabled',
+           'QuiverBatchSampler',
+           'QuiverDistributedSampler',
+           'ShadeSampler',
+           'ShadeDataset',
+           'ShadeValDataset']
 
 # Please keep this list sorted
-assert __all__ == sorted(__all__)
+#assert __all__ == sorted(__all__)

@@ -18,7 +18,7 @@ import torch.multiprocessing as multiprocessing
 from torch._utils import ExceptionWrapper
 from torch._six import string_classes
 
-from . import IterDataPipe, IterableDataset, Sampler, SequentialSampler, RandomSampler, BatchSampler, Dataset
+from . import IterDataPipe, IterableDataset, Sampler, SequentialSampler, RandomSampler, BatchSampler, Dataset, QuiverBatchSampler
 from . import _utils
 
 import torch.utils.data.graph_settings
@@ -47,11 +47,17 @@ get_worker_info = _utils.worker.get_worker_info
 class _DatasetKind(object):
     Map = 0
     Iterable = 1
+    BRMap = 2
+    Quiver = 3
 
     @staticmethod
-    def create_fetcher(kind, dataset, auto_collation, collate_fn, drop_last):
+    def create_fetcher(kind, dataset, auto_collation, collate_fn, drop_last, br_factor = 0.0, sampler = None):
         if kind == _DatasetKind.Map:
             return _utils.fetch._MapDatasetFetcher(dataset, auto_collation, collate_fn, drop_last)
+        if kind == _DatasetKind.BRMap:
+            return _utils.fetch._BRMapDatasetFetcher(dataset, auto_collation, collate_fn, drop_last, br_factor)
+        if kind == _DatasetKind.Quiver:
+            return _utils.fetch._QuiverFetcher(dataset, auto_collation, collate_fn, drop_last, sampler)
         else:
             return _utils.fetch._IterableDatasetFetcher(dataset, auto_collation, collate_fn, drop_last)
 
@@ -164,14 +170,17 @@ class DataLoader(Generic[T_co]):
     __initialized = False
 
     def __init__(self, dataset: Dataset[T_co], batch_size: Optional[int] = 1,
-                 shuffle: bool = False, sampler: Union[Sampler, Iterable, None] = None,
-                 batch_sampler: Union[Sampler[Sequence], Iterable[Sequence], None] = None,
-                 num_workers: int = 0, collate_fn: Optional[_collate_fn_t] = None,
+                 shuffle: bool = False, sampler: Optional[Sampler[int]] = None,
+                 batch_sampler: Optional[Sampler[Sequence[int]]] = None,
+                 num_workers: int = 0, collate_fn: _collate_fn_t = None,
                  pin_memory: bool = False, drop_last: bool = False,
-                 timeout: float = 0, worker_init_fn: Optional[_worker_init_fn_t] = None,
+                 timeout: float = 0, worker_init_fn: _worker_init_fn_t = None,
                  multiprocessing_context=None, generator=None,
                  *, prefetch_factor: int = 2,
-                 persistent_workers: bool = False):
+                 persistent_workers: bool = False,
+                 bounded_randomness_factor: float = 0.0,
+                 use_quiver: bool = False):
+        print("I found the right pytorch in anaconda env tc_br_conda_3")
         torch._C._log_api_usage_once("python.data_loader")
 
         if num_workers < 0:
@@ -196,6 +205,8 @@ class DataLoader(Generic[T_co]):
         self.timeout = timeout
         self.worker_init_fn = worker_init_fn
         self.multiprocessing_context = multiprocessing_context
+        self.bounded_randomness_factor = bounded_randomness_factor
+        self.use_quiver = use_quiver
 
         # Arg-check dataset related before checking samplers because we want to
         # tell users that iterable-style datasets are incompatible with custom
@@ -246,7 +257,12 @@ class DataLoader(Generic[T_co]):
                     "DataLoader with IterableDataset: expected unspecified "
                     "batch_sampler option, but got batch_sampler={}".format(batch_sampler))
         else:
-            self._dataset_kind = _DatasetKind.Map
+            if self.bounded_randomness_factor > 0:
+                self._dataset_kind = _DatasetKind.BRMap
+            elif self.use_quiver:
+                self._dataset_kind = _DatasetKind.Quiver
+            else:
+                self._dataset_kind = _DatasetKind.Map
 
 
 
@@ -280,7 +296,10 @@ class DataLoader(Generic[T_co]):
 
         if batch_size is not None and batch_sampler is None:
             # auto_collation without custom batch_sampler
-            batch_sampler = BatchSampler(sampler, batch_size, drop_last)
+            if self.use_quiver:
+                batch_sampler = QuiverBatchSampler(sampler, batch_size, drop_last)
+            else:
+                batch_sampler = BatchSampler(sampler, batch_size, drop_last)
 
         self.batch_size = batch_size
         self.drop_last = drop_last
@@ -508,12 +527,19 @@ class _BaseDataLoaderIter(object):
         self._persistent_workers = loader.persistent_workers
         self._num_yielded = 0
         self._profile_name = "enumerate(DataLoader)#{}.__next__".format(self.__class__.__name__)
+        self._dataloader = loader
 
     def __iter__(self) -> '_BaseDataLoaderIter':
         return self
 
     def _reset(self, loader, first_iter=False):
-        self._sampler_iter = iter(self._index_sampler)
+        if isinstance(self._index_sampler, QuiverBatchSampler):
+            #if not first_iter:
+                #self._sampler_iter = self._index_sampler.quiver_iter()
+                #self._sampler_iter = iter(self._index_sampler)
+            pass
+        else:
+            self._sampler_iter = iter(self._index_sampler)
         self._num_yielded = 0
         self._IterableDataset_len_called = loader._IterableDataset_len_called
 
@@ -563,13 +589,16 @@ class _SingleProcessDataLoaderIter(_BaseDataLoaderIter):
         assert self._num_workers == 0
 
         self._dataset_fetcher = _DatasetKind.create_fetcher(
-            self._dataset_kind, self._dataset, self._auto_collation, self._collate_fn, self._drop_last)
+            self._dataset_kind, self._dataset, self._auto_collation, self._collate_fn, self._drop_last,
+        self._dataloader.bounded_randomness_factor, self._dataloader.sampler)
 
     def _next_data(self):
         index = self._next_index()  # may raise StopIteration
         data = self._dataset_fetcher.fetch(index)  # may raise StopIteration
         if self._pin_memory:
             data = _utils.pin_memory.pin_memory(data)
+        if self._dataloader.bounded_randomness_factor > 0:
+            self._dataset.set_seen_samples(index)
         return data
 
 
@@ -909,14 +938,14 @@ class _MultiProcessingDataLoaderIter(_BaseDataLoaderIter):
             index_queue = multiprocessing_context.Queue()  # type: ignore[var-annotated]
             # Need to `cancel_join_thread` here!
             # See sections (2) and (3b) above.
-            index_queue.cancel_join_thread()
+            index_queue.cancel_join_thread() #OMKAR: what is this?
             w = multiprocessing_context.Process(
                 target=_utils.worker._worker_loop,
                 args=(self._dataset_kind, self._dataset, index_queue,
                       self._worker_result_queue, self._workers_done_event,
                       self._auto_collation, self._collate_fn, self._drop_last,
-                      self._base_seed, self._worker_init_fn, i, self._num_workers,
-                      self._persistent_workers))
+                      self._base_seed + i, self._worker_init_fn, i, self._num_workers,
+                      self._persistent_workers, self._dataloader.bounded_randomness_factor, self._dataloader.sampler))
             w.daemon = True
             # NB: Process.start() actually take some time as it needs to
             #     start a process and pass the arguments over via a pipe.
@@ -1240,6 +1269,10 @@ class _MultiProcessingDataLoaderIter(_BaseDataLoaderIter):
 
         self._index_queues[worker_queue_idx].put((self._send_idx, index))
         self._task_info[self._send_idx] = (worker_queue_idx,)
+        if self._dataloader.bounded_randomness_factor > 0:
+            t1=threading.Thread(target=self._dataset.set_seen_samples, args=(index, ))
+            t1.start()
+            #self._dataset.set_seen_samples(index)
         self._tasks_outstanding += 1
         self._send_idx += 1
 

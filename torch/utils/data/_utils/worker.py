@@ -201,7 +201,7 @@ def _generate_state(base_seed, worker_id):
 
 def _worker_loop(dataset_kind, dataset, index_queue, data_queue, done_event,
                  auto_collation, collate_fn, drop_last, base_seed, init_fn, worker_id,
-                 num_workers, persistent_workers):
+                 num_workers, persistent_workers, br_factor, quiver_sampler):
     # See NOTE [ Data Loader Multiprocessing Shutdown Logic ] for details on the
     # logic of this function.
 
@@ -234,7 +234,8 @@ def _worker_loop(dataset_kind, dataset, index_queue, data_queue, done_event,
             if init_fn is not None:
                 init_fn(worker_id)
 
-            fetcher = _DatasetKind.create_fetcher(dataset_kind, dataset, auto_collation, collate_fn, drop_last)
+            fetcher = _DatasetKind.create_fetcher(dataset_kind, dataset, auto_collation, collate_fn, drop_last,
+                                                  br_factor, quiver_sampler)
         except Exception:
             init_exception = ExceptionWrapper(
                 where="in DataLoader worker process {}".format(worker_id))
@@ -266,7 +267,7 @@ def _worker_loop(dataset_kind, dataset, index_queue, data_queue, done_event,
                 iteration_end = False
                 # Recreate the fetcher for worker-reuse policy
                 fetcher = _DatasetKind.create_fetcher(
-                    dataset_kind, dataset, auto_collation, collate_fn, drop_last)
+                    dataset_kind, dataset, auto_collation, collate_fn, drop_last, br_factor, quiver_sampler)
                 continue
             elif r is None:
                 # Received the final signal

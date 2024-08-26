@@ -2,3 +2,7 @@ redis
 redis-py-cluster
 CC="cc -mavx2" pip install -U --force-reinstall pillow-simd
 HeapDict
+psutil
+pandas
+deepspeed
+--extra-index-url https://pypi.nvidia.com  --upgrade nvidia-dali-cuda

@@ -220,6 +220,7 @@ conda install -c conda-forge libuv=1.39
 ```bash
 git clone --recursive https://github.com/pytorch/pytorch
 cd pytorch
+pip install -r requirements-conch.txt
 # if you are updating an existing checkout
 git submodule sync
 git submodule update --init --recursive --jobs 0

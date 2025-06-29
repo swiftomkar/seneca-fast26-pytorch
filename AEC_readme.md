@@ -32,8 +32,7 @@ OpenImages : We use the extended version of OpenImages with 4260 classes (~645GB
 
 ImageNet-22k (~1.3TB) : This is the full ImageNet dataset with 21841 classes downloadable from the ImageNet website [here](https://image-net.org/download-images.php).
 
-For the purposes of validating the functionality of Seneca, you only need a small dataset. For this purpose, you can use the test images from the imagenet dataset for classification tasks.
-![Screenshot 2025-06-29 at 11 26 38 AM](https://github.com/user-attachments/assets/bb2af2be-870c-4ad8-b4d9-2ae013bce9a8)
+For the purposes of validating the functionality of Seneca, you can download the smallest dataset which is the ImageNet-1K dataset.
 
 ```
 https://image-net.org/challenges/LSVRC/2012/2012-downloads.php

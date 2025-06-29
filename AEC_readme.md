@@ -8,6 +8,7 @@ Input data preprocessing is a common bottleneck when concurrently training multi
 The implementation for this project is split across 2 repositories:
 1) https://github.com/swiftomkar/seneca-fast26-pytorch
 2) https://github.com/swiftomkar/seneca-fast26-torchvision
+   
 While these repositories hold the source code, we also provide a docker image that you can download and use to run and evaluate Seneca.
 For AEC members: For ease and efficiency of evaluation, you can directly start with the docker container setup.
 
@@ -24,11 +25,11 @@ You will only need to make sure that you have the right NVIDIA drivers installed
 ## Data
 Our experiments use the following publicly available large datasets, which can be downloaded from their official repos.
 
-ImageNet-1k (~146GB): This is the most widely used image dataset (with 1000 classes) downloadable from here
+ImageNet-1k (~146GB): This is the most widely used image dataset (with 1000 classes) downloadable from [here](https://image-net.org/download-images.php)
 
-OpenImages : We use the extended version of OpenImages with 4260 classes (~645GB), which includes the 600 class OpenImages v4 dataset here, along with the crowdsourced image subset here
+OpenImages : We use the extended version of OpenImages with 4260 classes (~645GB), which includes the 600 class OpenImages v4 dataset here, along with the crowdsourced image subset [here](https://storage.googleapis.com/openimages/web/index.html)
 
-ImageNet-22k (~1.3TB) : This is the full ImageNet dataset with 21841 classes downloadable from the ImageNet website.
+ImageNet-22k (~1.3TB) : This is the full ImageNet dataset with 21841 classes downloadable from the ImageNet website [here](https://image-net.org/download-images.php).
 
 For the purposes of validating the functionality of Seneca, you only need a small dataset. For this purpose, you can use the test images from the imagenet dataset for classification tasks.
 ![Screenshot 2025-06-29 at 11 26 38 AM](https://github.com/user-attachments/assets/bb2af2be-870c-4ad8-b4d9-2ae013bce9a8)

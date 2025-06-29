@@ -38,4 +38,42 @@ For the purposes of validating the functionality of Seneca, you can download the
 https://image-net.org/challenges/LSVRC/2012/2012-downloads.php
 ```
 
+## Redis setup
+
+Seneca's implementation uses redis as the in-memory cache to store and retrieve training data. While redis is currently used, it can be swapped for other in-memory databases.
+You will need to run 4 redis instances using the followng commands. Redis instances can be run on the same server or on a remote caching node or a cluster of nodes:
+
+### Redis installation
+
+```
+cd $HOME
+wget -P $HOME/ http://download.redis.io/releases/redis-6.0.1.tar.gz 
+tar xzf redis-6.0.1.tar.gz
+mv $HOME/redis-6.0.1 $HOME/redis-stable
+cd $HOME/redis-stable
+yes Y | sudo apt-get install tcl
+make
+```
+### Running redis
+To run all necessary redis instances with the default port configurations, run the following script
+
+```
+start_redis.sh
+```
+This will launch all necessary redis instances on the same node. 
+
 ## Running Seneca
+
+To run the Docker container, you can use the following command example
+```
+sudo docker run --gpus all -it --rm -v /mnt/nfs_datasets/:/workspace/datasets -v /dev/shm/:/dev/shm omkarbdesai/seneca_cuda11.7_cudnn8.5:v2.2
+Here: /mnt/nfs_datasets/ is the location on the host where the dataset is located and /workspace/datasets is the path in the docker container to which the host directory is mapped
+```
+
+Once inside the docker container, run the following example command to run training of a ResNet50 model using Seneca:
+
+```
+python -m torch.distributed.launch --nproc_per_node=4 --master_port 1234 pytorch-imagenet-dali-mp.py --crop_size=64 -a vit_b_16 -b 256 --workers 16 --noeval --node_rank 0 --epochs 50 --job_sample_tracker_port 6388 --raw_cache_port 6378 --tensor_cache_port 6380 --decoded_cache_port 6376 --decoded_cache_host 10.56.82.137 --raw_cache_host 10.56.82.137 --tensor_cache_host 10.56.82.137 --shade_port_num 6380 --amp --no_dali --ImageFolder BBModel --cache_allocation 400 --cache_sllit 0-0-100 --classes 1000 /workspace/datasets/imagenet1k/
+```
+
+

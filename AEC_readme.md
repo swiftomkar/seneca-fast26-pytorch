@@ -8,7 +8,8 @@ Input data preprocessing is a common bottleneck when concurrently training multi
 The implementation for this project is split across 2 repositories:
 1) https://github.com/swiftomkar/seneca-fast26-pytorch
 2) https://github.com/swiftomkar/seneca-fast26-torchvision
-   
+
+
 While these repositories hold the source code, we also provide a docker image that you can download and use to run and evaluate Seneca.
 For AEC members: For ease and efficiency of evaluation, you can directly start with the docker container setup.
 

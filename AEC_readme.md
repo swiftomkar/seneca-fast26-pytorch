@@ -25,11 +25,11 @@ To run Seneca you will need a NVIDIA GPU (tested on A100, V100 and RTX5000) with
 ```
 docker pull omkarbdesai/seneca_cuda11.7_cudnn8.5:v2.2
 ```
-You will only need to make sure that you have the right NVIDIA drivers and the appropriate docker runtime installed on your system. The rest of the setup will be provided by the docker container automatically. 
+You will only need to make sure that you have the right NVIDIA drivers and the appropriate docker runtime installed on your system. The rest of the setup will be provided by the docker container automatically. The instructions to set-up your system to run the docker container with GPU support depends on your system and the instructions can be found here:
 
-The instructions to installing nvidia drivers can be found [here](https://documentation.ubuntu.com/server/how-to/graphics/install-nvidia-drivers/). 
+1) The instructions to installing nvidia drivers can be found [here](https://documentation.ubuntu.com/server/how-to/graphics/install-nvidia-drivers/). 
 
-The instructions to installing the NVIDIA Container Toolkit can be found [here](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installing-the-nvidia-container-toolkit)
+2) The instructions to installing the NVIDIA Container Toolkit can be found [here](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installing-the-nvidia-container-toolkit)
 
 ### Data
 Our experiments use the following publicly available large datasets, which can be downloaded from their official repos.
@@ -61,6 +61,7 @@ mv $HOME/redis-6.0.1 $HOME/redis-stable
 cd $HOME/redis-stable
 yes Y | sudo apt-get install tcl
 make
+apt install redis-tools
 ```
 
 
@@ -73,6 +74,12 @@ redis_utils/start_redis.sh
 ```
 
 This will launch all necessary redis instances on the same node. 
+If the redis instances are not running on the docker container (likely case), you may need to change the following in the redis.conf file
+
+```
+bind 127.0.0.1 -> bind 0.0.0.0
+protected_mode yes -> protected_mode no
+```
 
 To manage KV pair evictions from the cache, run the following script in the background:
 
@@ -91,7 +98,27 @@ sudo docker run --gpus all -it --rm -v <host path to dataset>:<container path to
 #### Running Seneca
 
 Once inside the docker container, run the following example command to run training of a ResNet50 model using Seneca:
+First we initialize the local redis cache on port 6377 and then run the training script.
+```
+/workspace/redis-stable/src/redis-server /workspace/redis-stable/redis.conf --port 6377 &
+
+python -m torch.distributed.launch --nproc_per_node=<number of available GPUs per node> --master_port 1234 pytorch-imagenet-mp.py --crop_size=224 -a resnet50 -b 256 --workers 16 --noeval --node_rank <node number, 0 indexed> --epochs 5 --job_sample_tracker_port 6388 --raw_cache_port 6378 --tensor_cache_port 6380 --decoded_cache_port 6376 --decoded_cache_host 10.56.82.137 --raw_cache_host 10.56.82.137 --tensor_cache_host 10.56.82.137 --amp --no_dali --ImageFolder BBModel --cache_allocation <cache size in GB> --cache_sllit 0-0-100 --classes 1000 <path to dataset containing the "train" directory>
+```
+
+#### Troubleshooting
+
+1) If you see CUDA capability errors when running the training script, it is likely that the pyTorch prebuilt with the docker container was built with an incompatible cuda kernel version. In such a case, run the following commands
 
 ```
-python -m torch.distributed.launch --nproc_per_node=<number of available GPUs per node> --master_port 1234 pytorch-imagenet-mp.py --crop_size=224 -a vit_b_16 -b 256 --workers 16 --noeval --node_rank <node number, 0 indexed> --epochs 5 --job_sample_tracker_port 6388 --raw_cache_port 6378 --tensor_cache_port 6380 --decoded_cache_port 6376 --decoded_cache_host 10.56.82.137 --raw_cache_host 10.56.82.137 --tensor_cache_host 10.56.82.137 --amp --no_dali --ImageFolder BBModel --cache_allocation <cache size in GB> --cache_sllit 0-0-100 --classes 1000 <path to dataset containing the "train" directory>
+cd /workspace/disyml-conch-pytorch
+python setup.py clean
+python setup.py develop
+
+cd /workspace/disyml-conch-pytorch
+python setup.py clean
+python setup.py develop
 ```
+
+2) If you encounter redis connectivity errors, it is likely that your firewall is blocking applications to connect to the required redis ports or the `redis.conf` is not configured properly. 
+It is challenging to proide exact instructions for this due to different configurations possible on your system. However, please feel free to contact me if you face issues. 
+

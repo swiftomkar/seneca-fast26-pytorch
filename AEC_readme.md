@@ -21,13 +21,15 @@ For AEC members: For ease and efficiency of evaluation, you can directly start w
 
 Our evaluations were completed on CloudLab, Azure, and our internal servers. We recognise that it is currently challenging to get access to GPU VMs and to help with that, we can provide access to our internal servers for evaluation purposes. Please send an email to odesai@syr.edu and we will be happy to provide the necessary access. 
 
-To run Seneca you will need a NVIDIA GPU (tested on A100, V100 and RTX5000) with CUDA 11.7, GPU driver version 417.56, docker, and Python 3. We used the prebuilt NVIDIA docker container nvcr.io/nvidia/pytorch:19.05-py3 container as the base image and built a Seneca container image on top of it. The image can be downloaded by:
+To run Seneca you will need a NVIDIA GPU (tested on A100, V100 and RTX5000) with CUDA 11.7, a GPU driver version compatible with your GPU, docker, and Python 3. We used the prebuilt NVIDIA docker container nvcr.io/nvidia/pytorch:19.05-py3 container as the base image and built a Seneca container image on top of it. The image can be downloaded by:
+
 ```
 docker pull omkarbdesai/seneca_cuda11.7_cudnn8.5:v2.2
 ```
 You will only need to make sure that you have the right NVIDIA drivers and the appropriate docker runtime installed on your system. The rest of the setup will be provided by the docker container automatically. 
 
-The instructions to installing nvidia drivers can be found [here](https://documentation.ubuntu.com/server/how-to/graphics/install-nvidia-drivers/)
+The instructions to installing nvidia drivers can be found [here](https://documentation.ubuntu.com/server/how-to/graphics/install-nvidia-drivers/). 
+
 The instructions to installing the NVIDIA Container Toolkit can be found [here](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html#installing-the-nvidia-container-toolkit)
 
 ### Data
@@ -61,19 +63,29 @@ cd $HOME/redis-stable
 yes Y | sudo apt-get install tcl
 make
 ```
-### System initialization
 
-To run the Docker container, you can use the following command example
-```
-sudo docker run --gpus all -it --rm -v <host path to dataset>:<container path to map dataset> -v /dev/shm/:/dev/shm omkarbdesai/seneca_cuda11.7_cudnn8.5:v2.2
-```
 #### Running redis
-To run all necessary redis instances with the default port configurations, run the following script inside thed ocker container
+To run all necessary redis instances with the default port configurations, run the following script inside the docker container
 
 ```
 start_redis.sh
 ```
+
 This will launch all necessary redis instances on the same node. 
+
+To manage KV pair evictions from the cache, run the following script in the background:
+
+```
+cache_eviction_handler.py
+```
+
+### System initialization
+
+To run the Docker container, you can use the following command example
+
+```
+sudo docker run --gpus all -it --rm -v <host path to dataset>:<container path to map dataset> -v /dev/shm/:/dev/shm omkarbdesai/seneca_cuda11.7_cudnn8.5:v2.2
+```
 
 #### Running Seneca
 
@@ -82,5 +94,3 @@ Once inside the docker container, run the following example command to run train
 ```
 python -m torch.distributed.launch --nproc_per_node=<number of available GPUs per node> --master_port 1234 pytorch-imagenet-mp.py --crop_size=224 -a vit_b_16 -b 256 --workers 16 --noeval --node_rank <node number, 0 indexed> --epochs 5 --job_sample_tracker_port 6388 --raw_cache_port 6378 --tensor_cache_port 6380 --decoded_cache_port 6376 --decoded_cache_host 10.56.82.137 --raw_cache_host 10.56.82.137 --tensor_cache_host 10.56.82.137 --amp --no_dali --ImageFolder BBModel --cache_allocation <cache size in GB> --cache_sllit 0-0-100 --classes 1000 <path to dataset containing the "train" directory>
 ```
-
-

@@ -13,7 +13,6 @@ The implementation for this project is split across 2 repositories:
 
 
 While these repositories hold the source code, we also provide a docker image that you can download and use to run and evaluate Seneca.
-For AEC members: For ease and efficiency of evaluation, you can directly start with the docker container setup.
 
 ## Process to verify "Artifact functional"
 
@@ -41,7 +40,7 @@ OpenImages : We use the extended version of OpenImages with 4260 classes (~645GB
 
 ImageNet-22k (~1.3TB) : This is the full ImageNet dataset with 21841 classes downloadable from the ImageNet website [here](https://image-net.org/download-images.php).
 
-For the purposes of validating the functionality of Seneca, you can download the smallest dataset which is the ImageNet-1K dataset.
+For the purposes of validating the functionality of Seneca, you can download and extract the smallest dataset which is the ~146GB ImageNet-1K dataset.
 
 ```
 https://image-net.org/challenges/LSVRC/2012/2012-downloads.php
@@ -50,7 +49,7 @@ https://image-net.org/challenges/LSVRC/2012/2012-downloads.php
 ### Redis setup
 
 Seneca's implementation uses redis as the in-memory cache to store and retrieve training data. While redis is currently used, it can be swapped for other in-memory databases.
-You will need to run 4 redis instances using the followng commands. Redis instances can be run on the same server or on a remote caching node or a cluster of nodes:
+You will need to run 4 redis instances using the followng commands. Redis instances can be run on the same server or on a remote caching node or a cluster of nodes.
 
 #### Redis installation
 
@@ -64,11 +63,13 @@ yes Y | sudo apt-get install tcl
 make
 ```
 
+
+
 #### Running redis
-To run all necessary redis instances with the default port configurations, run the following script inside the docker container
+To run all necessary redis instances with the default port configurations, run the following script where redis is installed.
 
 ```
-start_redis.sh
+redis_utils/start_redis.sh
 ```
 
 This will launch all necessary redis instances on the same node. 
@@ -76,7 +77,7 @@ This will launch all necessary redis instances on the same node.
 To manage KV pair evictions from the cache, run the following script in the background:
 
 ```
-cache_eviction_handler.py
+redis_utils/cache_eviction_handler.py
 ```
 
 ### System initialization

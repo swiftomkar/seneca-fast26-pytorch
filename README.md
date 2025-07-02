@@ -1,6 +1,7 @@
 # Seneca
 
 This repository contains the PyTorch source code for the paper "Preparation Meets Opportunity: Enhancing Data Preprocessing for ML Training With Seneca"
+Seneca is built on top of PyTorch and the TorchVision dataloader
 
 --------------------------------------------------------------------------------
 For Seneca specific installation instructions click [here](https://github.com/swiftomkar/seneca-fast26-pytorch/blob/master/AEC_readme.md)

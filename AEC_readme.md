@@ -22,7 +22,7 @@ Seneca's implementation is divided across two repositories:
 For convenience, we also provide a prebuilt Docker image to run and evaluate Seneca:
 
 ```bash
-docker pull omkarbdesai/seneca_cuda11.7_cudnn8.5:v2.2
+docker pull omkarbdesai/seneca_cuda11.7_cudnn8.5:latest
 ````
 
 ---

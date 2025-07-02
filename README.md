@@ -1,4 +1,6 @@
-![PyTorch Logo](https://github.com/pytorch/pytorch/blob/master/docs/source/_static/img/pytorch-logo-dark.png)
+# Seneca
+
+This repository contains the PyTorch source code for the paper "Preparation Meets Opportunity: Enhancing Data Preprocessing for ML Training With Seneca"
 
 --------------------------------------------------------------------------------
 For Seneca apecific installation instructions click [here](https://github.com/swiftomkar/seneca-fast26-pytorch/blob/master/AEC_readme.md)

@@ -3,7 +3,7 @@
 This repository contains the PyTorch source code for the paper "Preparation Meets Opportunity: Enhancing Data Preprocessing for ML Training With Seneca"
 
 --------------------------------------------------------------------------------
-For Seneca apecific installation instructions click [here](https://github.com/swiftomkar/seneca-fast26-pytorch/blob/master/AEC_readme.md)
+For Seneca specific installation instructions click [here](https://github.com/swiftomkar/seneca-fast26-pytorch/blob/master/AEC_readme.md)
 --------------------------------------------------------------------------------
 
 PyTorch is a Python package that provides two high-level features:

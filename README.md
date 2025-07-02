@@ -1,6 +1,8 @@
 # Seneca
 
-This repository contains the PyTorch source code for the paper "Preparation Meets Opportunity: Enhancing Data Preprocessing for ML Training With Seneca"
+This repository contains the PyTorch source code for the paper "Preparation Meets Opportunity: Enhancing Data Preprocessing for ML Training With Seneca".
+
+
 Seneca is built on top of PyTorch and the TorchVision dataloader
 
 --------------------------------------------------------------------------------

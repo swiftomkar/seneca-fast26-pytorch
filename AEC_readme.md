@@ -97,11 +97,37 @@ sudo docker run --gpus all -it --rm -v <host path to dataset>:<container path to
 
 #### Running Seneca
 
-Once inside the docker container, run the following example command to run training of a ResNet50 model using Seneca:
-First we initialize the local redis cache on port 6377 and then run the training script.
+Once inside the docker container install pytorch and torchvision by following these instructions (This setp is necessary if your GPU uses a compute capability other than sm_70):
+Pytorch:
+```
+cd /workspace/disyml_seneca_pytorch
+python setup.py clean
+python setup.py develop
+```
+Torchvision:
+```
+cd /workspace/vision
+python setup.py clean
+python setup.py develop
+```
+Next we also need to install apex
+Our docker container proides the appropriate version of apex that is compatible with the PyTorch version used for Seneca. Install it as follows:
+```
+cd ~/apex_patched/apex
+# if pip >= 23.1 (ref: https://pip.pypa.io/en/stable/news/#v23-1) which supports multiple `--config-settings` with the same key... 
+pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --config-settings "--build-option=--cpp_ext" --config-settings "--build-option=--cuda_ext" ./
+# otherwise
+pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation --global-option="--cpp_ext" --global-option="--cuda_ext" ./
+```
+
+We initialize the local redis cache on port 6377 and then run the training script.
 ```
 /workspace/redis-stable/src/redis-server /workspace/redis-stable/redis.conf --port 6377 &
+```
 
+run the following example command to run training of a ResNet50 model using Seneca:
+
+```
 python -m torch.distributed.launch --nproc_per_node=<number of available GPUs per node> --master_port 1234 pytorch-imagenet-mp.py --crop_size=224 -a resnet50 -b 256 --workers 16 --noeval --node_rank <node number, 0 indexed> --epochs 5 --job_sample_tracker_port 6388 --raw_cache_port 6378 --tensor_cache_port 6380 --decoded_cache_port 6376 --decoded_cache_host 10.56.82.137 --raw_cache_host 10.56.82.137 --tensor_cache_host 10.56.82.137 --amp --no_dali --ImageFolder BBModel --cache_allocation <cache size in GB> --cache_sllit 0-0-100 --classes 1000 <path to dataset containing the "train" directory>
 ```
 
@@ -110,11 +136,16 @@ python -m torch.distributed.launch --nproc_per_node=<number of available GPUs pe
 1) If you see CUDA capability errors when running the training script, it is likely that the pyTorch prebuilt with the docker container was built with an incompatible cuda kernel version. In such a case, run the following commands
 
 ```
+export TORCH_CUDA_ARCH_LIST="<your GPUs comute capability: can be found at:>"
+export USE_CUDNN=1
+export CUDNN_INCLUDE_DIR=/usr/local/cuda/include
+export CUDNN_LIBRARY=/usr/local/cuda/lib64
+
 cd /workspace/disyml-conch-pytorch
 python setup.py clean
 python setup.py develop
 
-cd /workspace/disyml-conch-pytorch
+cd /workspace/vision
 python setup.py clean
 python setup.py develop
 ```

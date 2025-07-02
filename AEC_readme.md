@@ -22,7 +22,7 @@ Seneca's implementation is divided across two repositories:
 For convenience, we also provide a prebuilt Docker image to run and evaluate Seneca:
 
 ```bash
-docker pull omkarbdesai/seneca_cuda11.7_cudnn8.5:latest
+docker pull omkarbdesai/seneca_cuda11.7_cudnn8.5:v3.0
 ````
 
 ---
@@ -54,9 +54,9 @@ Seneca supports the following public datasets:
 
 | Dataset                         | Classes | Size    | Link                                                                       |
 | ------------------------------- | ------- | ------- | -------------------------------------------------------------------------- |
-| **ImageNet-1K**                 | 1,000   | \~146GB | [Download](https://image-net.org/challenges/LSVRC/2012/2012-downloads.php) |
-| **OpenImages (v4 + extension)** | 4,260   | \~645GB | [OpenImages v4](https://storage.googleapis.com/openimages/web/index.html)  |
-| **ImageNet-22K**                | 21,841  | \~1.3TB | [Download](https://image-net.org/download-images.php)                      |
+| **ImageNet-1K**                 | 1,000   | \~142GB | [Download](https://image-net.org/challenges/LSVRC/2012/2012-downloads.php) |
+| **OpenImages (v4 + extension)** | 600     | \~517GB | [OpenImages v4](https://storage.googleapis.com/openimages/web/index.html)  |
+| **ImageNet-22K**                | 21,841  | \~1.4TB | [Download](https://image-net.org/download-images.php)                      |
 
 For validation purposes, we recommend starting with **ImageNet-1K**.
 
@@ -64,7 +64,7 @@ For validation purposes, we recommend starting with **ImageNet-1K**.
 
 ## Step 3: 🧠 Redis Setup
 
-Seneca uses **four Redis instances** as in-memory caches for different data formats.
+Seneca uses **Redis** as in-memory caches for different data formats.
 
 ### ⚠️ Recommended Setup
 
@@ -89,7 +89,7 @@ sudo apt install redis-tools
 
 ### 3.2 Modify Redis Configuration
 
-Edit `redis.conf`:
+Edit `~/redis-stable/redis.conf`:
 
 ```conf
 bind 127.0.0.1 -> bind 0.0.0.0
@@ -118,7 +118,7 @@ On the host:
 python redis_utils/cache_eviction_handler.py &
 ```
 
-This script manages automatic eviction of KV pairs.
+This script manages eviction of KV pairs.
 
 ---
 
@@ -128,7 +128,7 @@ This script manages automatic eviction of KV pairs.
 sudo docker run --gpus all -it --rm \
     -v <host_path_to_dataset>:<container_dataset_path> \
     -v /dev/shm/:/dev/shm \
-    omkarbdesai/seneca_cuda11.7_cudnn8.5:v2.2
+    omkarbdesai/seneca_cuda11.7_cudnn8.5:v3.0
 ```
 
 Replace `<host_path_to_dataset>` with the path where your dataset is stored.

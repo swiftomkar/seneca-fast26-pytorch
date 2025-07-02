@@ -84,7 +84,6 @@ yes Y | sudo apt-get install tcl
 make
 sudo apt install redis-tools
 ```
-
 ---
 
 ### 3.2 Modify Redis Configuration
@@ -100,9 +99,16 @@ These changes allow Redis to accept external connections (e.g., from the Docker 
 
 ---
 
-### 3.3 Launch Redis Instances
+### 3.3 Copy redis launch scripts
 
-From the Redis install directory:
+```bash
+git clone https://github.com/swiftomkar/seneca-fast26-pytorch.git
+cd ./seneca-fast26-pytorch/redis_utils
+```
+
+### 3.4 Launch Redis Instances
+
+From the Redis utils directory:
 
 ```bash
 redis_utils/start_redis.sh
@@ -110,9 +116,9 @@ redis_utils/start_redis.sh
 
 ---
 
-### 3.4 Start Cache Eviction Handler
+### 3.5 Start Cache Eviction Handler
 
-On the host:
+On the host node/caching node:
 
 ```bash
 python redis_utils/cache_eviction_handler.py &

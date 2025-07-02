@@ -183,11 +183,11 @@ pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation \
 ```bash
 python -m torch.distributed.launch --nproc_per_node=<num_gpus> --master_port 1234 \
     pytorch-imagenet-mp.py --crop_size=<crop size> -a resnet50 -b 256 --workers 16 --noeval \
-    --node_rank <node_index> --epochs 5 --job_sample_tracker_port 6388 \
+    --node_rank <node_index> --epochs 5 --job_sample_tracker_port 6377 \
     --raw_cache_port 6378 --tensor_cache_port 6380 --decoded_cache_port 6376 \
     --decoded_cache_host <host_ip> --raw_cache_host <host_ip> --tensor_cache_host <host_ip> \
     --amp --no_dali --ImageFolder BBModel \
-    --cache_allocation <cache_size_in_GB> --cache_sllit 0-90-10 --classes 1000 \
+    --cache_allocation <cache_size_in_GB> --cache_sllit <cache-split> --classes 1000 \
     <path_to_dataset_with_train_directory>
 ```
 
@@ -198,6 +198,7 @@ Replace placeholders:
 * `<host_ip>`: Host machine IP running Redis
 * `<cache_size_in_GB>`: Total cache size to allocate
 * `<crop size>`: Size of image to train on (eg: 64, 128)
+* `<cache split>`: MDP informed split. for testing use an arbitary split such as "0-90-10"
 * `<path_to_dataset_with_train_directory>`: Path that contains the `train/` directory
 
 ---
@@ -214,8 +215,7 @@ Replace placeholders:
 
 * Ensure Redis servers are listening on all interfaces (`bind 0.0.0.0`)
 * Disable protected mode (`protected_mode no`)
-* Make sure Docker container can reach the host IP. Try using `host.docker.internal` on macOS/Windows or the host’s internal IP on Linux.
-* Verify Redis ports (6376, 6377, 6378, 6380, 6388) are open.
+* Make sure Docker container can reach the host IP.
 
 ### ❗ CUDA Compatibility Errors
 

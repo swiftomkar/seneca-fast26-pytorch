@@ -22,7 +22,7 @@ Seneca's implementation is divided across two repositories:
 For convenience, we also provide a prebuilt Docker image to run and evaluate Seneca:
 
 ```bash
-docker pull omkarbdesai/seneca_cuda11.7_cudnn8.5:v3.0
+docker pull omkarbdesai/seneca_cuda11.7_cudnn8.5:v3.1
 ````
 
 ---
@@ -150,7 +150,7 @@ Replace `<host_path_to_dataset>` with the path where your dataset is stored.
 
 ---
 
-## Step 5: 🔧 Inside the Docker Container if compute capability is other than sm_70 (V100 GPU):
+## Step 5: 🔧 Inside the Docker Container if compute capability is other than sm_75 (Quadro RTX5000 GPU):
 
 ### 5.1 Build PyTorch 
 

@@ -93,6 +93,14 @@ Edit `~/redis-stable/redis.conf`:
 ```conf
 bind 127.0.0.1 -> bind 0.0.0.0
 protected_mode yes -> protected_mode no
+maxclients 10000 -> maxclients 500000
+
+comment the following lines in redis.conf:
+save 900 1
+save 300 10
+save 60 10000
+add the following line
+save ""
 ```
 
 These changes allow Redis to accept external connections (e.g., from the Docker container).
@@ -132,7 +140,8 @@ This script manages eviction of KV pairs.
 
 ```bash
 sudo docker run --gpus all -it --rm \
-    -v <host_path_to_dataset>:<container_dataset_path> \
+    -v <host_path_to_dataset>:/workspace/dataset \
+    -v $HOME/redis-stable:/workspace/redis-stable \
     -v /dev/shm/:/dev/shm \
     omkarbdesai/seneca_cuda11.7_cudnn8.5:v3.0
 ```
@@ -188,7 +197,7 @@ pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation \
 
 ```bash
 python -m torch.distributed.launch --nproc_per_node=<num_gpus> --master_port 1234 \
-    pytorch-imagenet-mp.py --crop_size=<crop size> -a resnet50 -b 256 --workers 16 --noeval \
+    seneca_training_example.py --crop_size=<crop size> -a resnet50 -b 256 --workers 16 --noeval \
     --node_rank <node_index> --epochs 5 --job_sample_tracker_port 6377 \
     --raw_cache_port 6378 --tensor_cache_port 6380 --decoded_cache_port 6376 \
     --decoded_cache_host <host_ip> --raw_cache_host <host_ip> --tensor_cache_host <host_ip> \

@@ -155,7 +155,7 @@ Replace `<host_path_to_dataset>` with the path where your dataset is stored.
 ### 5.1 Build PyTorch 
 
 ```bash
-cd /workspace/disyml_seneca_pytorch
+cd /workspace/seneca-fast26-pytorch
 python setup.py clean
 python setup.py develop
 ```

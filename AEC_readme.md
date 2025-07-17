@@ -140,7 +140,7 @@ This script manages eviction of KV pairs.
 
 ```bash
 sudo docker run --gpus all -it --rm \
-    -v <host_path_to_dataset>:/workspace/dataset \
+    -v <host_path_to_dataset>:/workspace/datasets \
     -v $HOME/redis-stable:/workspace/redis-stable \
     -v /dev/shm/:/dev/shm \
     omkarbdesai/seneca_cuda11.7_cudnn8.5:v3.0

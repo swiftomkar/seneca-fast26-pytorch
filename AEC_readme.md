@@ -155,6 +155,7 @@ Replace `<host_path_to_dataset>` with the path where your dataset is stored.
 ### 5.1 Build PyTorch 
 
 ```bash
+pip uninstall torch
 cd /workspace/seneca-fast26-pytorch
 python setup.py clean
 python setup.py develop
@@ -215,6 +216,18 @@ Replace placeholders:
 * `<crop size>`: Size of image to train on (eg: 64, 128)
 * `<cache split>`: MDP informed split. for testing use a split (eg: "0-90-10")
 * `<path_to_dataset_with_train_directory>`: Path that contains the `train/` directory
+
+Example command for the in-house server:
+```bash
+python -m torch.distributed.launch --nproc_per_node=2 --master_port 1234 \
+    seneca_training_example.py --crop_size=64 -a resnet50 -b 256 --workers 16 --noeval \
+    --node_rank 0 --epochs 5 --job_sample_tracker_port 6377 \
+    --raw_cache_port 6378 --tensor_cache_port 6380 --decoded_cache_port 6376 \
+    --decoded_cache_host 10.51.53.79 --raw_cache_host 10.51.53.79 --tensor_cache_host 10.51.53.79 \
+    --amp --no_dali --ImageFolder BBModel \
+    --cache_allocation 100 --cache_sllit 58-42-0 --classes 1000 \
+    /workspace/datasets/imagenet1k
+```
 
 ---
 

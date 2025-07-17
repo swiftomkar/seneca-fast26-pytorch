@@ -211,9 +211,9 @@ Replace placeholders:
 * `<num_gpus>`: Number of GPUs per node
 * `<node_index>`: Node rank (0-indexed)
 * `<host_ip>`: Host machine IP running Redis
-* `<cache_size_in_GB>`: Total cache size to allocate
+* `<cache_size_in_GB>`: Total cache size to allocate. This should be the DRAM you want to allocate to Redis for caching
 * `<crop size>`: Size of image to train on (eg: 64, 128)
-* `<cache split>`: MDP informed split. for testing use an arbitary split such as "0-90-10"
+* `<cache split>`: MDP informed split. for testing use a split (eg: "0-90-10")
 * `<path_to_dataset_with_train_directory>`: Path that contains the `train/` directory
 
 ---

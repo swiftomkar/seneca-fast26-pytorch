@@ -72,7 +72,7 @@ Seneca uses **Redis** as in-memory caches for different data formats.
 
 ---
 
-### 3.1 Install Redis (on host or cache node)
+### 3.1 Install Redis (on host, container, or cache node)
 
 ```bash
 cd $HOME
@@ -187,6 +187,16 @@ pip install -v --disable-pip-version-check --no-cache-dir --no-build-isolation \
 ---
 
 ## Step 6: 🧪 Run Training with Seneca
+
+### 6.0 Install redis in the docker container (available at /workspace/redis-stable)
+
+```bash
+cd /workspace/redis-stable
+make clean
+yes Y | apt-get install tcl
+make
+sudo apt install redis-tools
+```
 
 ### 6.1 Start the final Redis instance inside the container
 
